@@ -403,13 +403,11 @@
     type="fixed">
     <origin
       xyz="0 0 0.172"
-      rpy="0 0 0" />
+      rpy="3.14159 -1.5708 0" />
     <parent
       link="${prefix}xarm_gripper_base_link" />
     <child
       link="${prefix}link_tcp" />
   </joint>
-
   </xacro:macro>
-
 </robot>
