@@ -18,8 +18,8 @@
     <node name="safety_limits" pkg="xarm_rail_interface" type="safety_limits" output="screen"/>
 
     <!-- launch transform broadcasters -->
-    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="camera_tf"
-      args="0.0 0.0 0.0  0.7071 0.0 0.7071 0.0 camera_link_base camera_link" /> -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="camera_tf"
+      args="0.0 0.0 0.0  0.7071 0.0 0.7071 0.0 camera_link_base camera_link" />
   
     <node pkg="tf2_ros" type="static_transform_publisher" name="gripper_camera_tf"
       args="0.068 0.0 0.008   0.0 0.0 0.0 1.0 xarm_gripper_base_link camera_link_base" />
