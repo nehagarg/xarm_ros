@@ -1,4 +1,4 @@
-  <launch>
+<launch>
     <arg name ="robot_ip" default = "192.168.1.201"/>
     <arg name="show_rviz" default="true" />
     <arg name="cloud_topic" default="camera/depth/color/points"/>
