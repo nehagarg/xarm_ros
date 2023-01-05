@@ -15,7 +15,7 @@
         <arg name="show_rviz" value="$(arg show_rviz)"/>
     </include>
 
-    <!-- <node name="safety_limits" pkg="xarm_rail_interface" type="safety_limits" output="screen"/> -->
+    <node name="safety_limits" pkg="gazebo_xarm_interface" type="lang_corr_table_limits" output="screen"/>
 
     <!-- launch transform broadcasters -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="camera_tf"
