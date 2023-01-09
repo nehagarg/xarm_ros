@@ -192,7 +192,7 @@ Visualization Manager:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
         Scene Display Time: 0.20000000298023224
-        Show Scene Geometry: false
+        Show Scene Geometry: true
         Voxel Coloring: Z-Axis
         Voxel Rendering: Occupied Voxels
       Scene Robot:
@@ -643,5 +643,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1202
-  X: 960
+  X: 718
   Y: 27

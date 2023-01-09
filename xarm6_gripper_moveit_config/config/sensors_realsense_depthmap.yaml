@@ -6,7 +6,7 @@ sensors:
     near_clipping_plane_distance: 0.1
     far_clipping_plane_distance: 1.0
     shadow_threshold: 0.2
-    padding_scale: 4.0
+    padding_scale: 3.0
     padding_offset: 0.05
     max_update_rate: 0.5
     # in Hz
