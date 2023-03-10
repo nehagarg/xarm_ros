@@ -28,5 +28,12 @@
 #include <xarm_msgs/SetMultipleInts.h>
 #include <xarm_msgs/PlayTraj.h>
 #include <xarm_msgs/SetString.h>
+#include <xarm_msgs/GetFloat32List.h>
+#include <xarm_msgs/GetInt32.h>
+#include <xarm_msgs/SetModbusTimeout.h>
+#include <xarm_msgs/GetSetModbusData.h>
+#include <xarm_msgs/Call.h>
+#include <xarm_msgs/FtCaliLoad.h>
+#include <xarm_msgs/FtIdenLoad.h>
 
 #endif // __XARM_MSGS_H

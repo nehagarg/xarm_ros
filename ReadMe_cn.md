@@ -1,8 +1,12 @@
+**UFACTORY Lite 6**用户, 确保您已经完成本篇说明中4.7节之前的部分，然后可以切换至[Lite6说明](./ReadMe_others.md).  
+**kinetic**版本的用户，请使用[kinetic分支](https://github.com/xArm-Developer/xarm_ros/tree/kinetic).
+
 ## 重要提示:
+&ensp;&ensp;使用xArm C++ SDK作为子模块后，**/xarm/set_tool_modbus**服务的使用有所修改，相比之前版本，回复中多余的0x09字节将**不再需要***！  
 &ensp;&ensp;由于机械臂通信格式修改, 建议在***2019年6月前发货***的xArm 早期用户尽早 ***升级*** 控制器固件程序，这样才能在以后的更新中正常驱动机械臂运动以及使用最新开发的各种功能。请联系我们获得升级的详细指示。 当前ROS库主要的分支已不支持旧版本，先前版本的ROS驱动包还保留在 ***'legacy'*** 分支中, 但不会再有更新。    
 &ensp;&ensp;在使用xarm_ros之前，请务必按照第3节**准备工作**的指示安装必要的第三方支持库，否则使用时会出现错误。  
 &ensp;&ensp;如果使用**Moveit**开发, 请尽量在PC和控制器之间使用**网线直连方式**, 不要使用交换机等中间设备, 否则引入的通信延迟可能会对Moveit轨迹执行造成不良影响。  
-&ensp;&ensp; 更新本仓库代码时, 请记得同时[检查submodule更新](#421-更新代码包)  
+&ensp;&ensp; 更新本仓库代码时, 请记得同时[检查submodule更新](#421-更新代码包)   
 
 # 目录:  
 * [1. 简介](#1-简介)
@@ -17,9 +21,9 @@
     * [5.5 ***xarm7_moveit_config***](#55-xarm7_moveit_config)  
         * [5.5.1 Moveit加载其它自定义模型到机械臂末端](#551-moveit加载其它自定义模型到机械臂末端)
     * [5.6 ***xarm_planner***](#56-xarm_planner)  
-    * [5.7 ***xarm_api/xarm_msgs***](#57-xarm_apixarm_msgs)  
+    * [5.7 ***xarm_api/xarm_msgs(新增关节/笛卡尔在线规划)***](#57-xarm_apixarm_msgs)  
         * [5.7.1 使用ROS Service启动 xArm (***后续指令执行的前提***)](#使用ros-service启动-xarm)  
-        * [5.7.2 关节空间和笛卡尔空间运动指令的示例(新增**速度模式**)](#关节空间和笛卡尔空间运动指令的示例)
+        * [5.7.2 关节空间和笛卡尔空间运动指令的示例](#关节空间和笛卡尔空间运动指令的示例)
         * [5.7.3 I/O 操作](#工具-io-操作)  
         * [5.7.4 获得反馈状态信息](#获得反馈状态信息)  
         * [5.7.5 关于设定末端工具偏移量](#关于设定末端工具偏移量)  
@@ -27,15 +31,25 @@
         * [5.7.7 机械爪控制](#机械爪控制)  
         * [5.7.8 真空吸头控制](#真空吸头控制)  
         * [5.7.9 末端工具Modbus通信](#末端工具modbus通信)
-* [6. 模式切换](#6-模式切换)
+        * [5.7.10 'report_type'启动参数](#report_type-启动参数)
+    * [5.8 ***xarm_moveit_servo***](#58-xarm_moveit_servo)
+* [6. 模式切换(***更新***)](#6-模式切换)
     * [6.1 模式介绍](#61-模式介绍)
     * [6.2 切换模式的正确方法](#62-切换模式的正确方法)
-* [7. 其他示例](#7-其他示例)
-  * [7.1 两台xArm5 (两进程独立控制)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#1-multi_xarm5-controlled-separately)
-    * [7.2 Servo_Cartesian 笛卡尔位置伺服](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)
-    * [7.3 Servo_Joint 关节位置伺服](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory)
-    * [7.4 使用同一个moveGroup节点控制xArm6双臂](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#4-dual-xarm6-controlled-with-one-movegroup-node)
-    * [7.5 用Moveit展示xarm7冗余解的示例](https://github.com/xArm-Developer/xarm_ros/tree/master/examples/xarm7_redundancy_res)
+* [7. xArm视觉](#7-xArm视觉)
+    * [7.1 相关依赖库和ros包的安装](#71-相关依赖库和ros包的安装)
+    * [7.2 手眼标定示例](#72-手眼标定示例)
+    * [7.3 3D视觉抓取示例](#73-3D视觉抓取示例)
+    * [7.4 在仿真的xArm模型末端添加RealSense D435i模型](#74-在仿真的xarm模型末端添加realsense-d435i模型)
+    * [7.5 颜色块抓取例子 (仿真+真机)](#75-颜色块抓取例子)
+* [8. 其他示例](#8-其他示例)
+    * [8.0 用Moveit展示xarm7冗余解的示例](https://github.com/xArm-Developer/xarm_ros/tree/master/examples/xarm7_redundancy_res)
+    * [8.1 两台xArm5 (两进程独立控制)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#1-multi_xarm5-controlled-separately)
+    * [8.2 Servo_Cartesian 笛卡尔位置伺服](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)
+    * [8.3 Servo_Joint 关节位置伺服](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory)
+    * [8.4 使用同一个moveGroup节点控制xArm6双臂](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#4-dual-xarm6-controlled-with-one-movegroup-node)
+    * [8.5 轨迹录制和回放](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#5-run-recorded-trajectory-beta)
+    * [8.6 可用于动态跟踪的在线轨迹规划(**NEW**)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update)
 
 # 1. 简介：
    &ensp;&ensp;此代码库包含xArm模型文件以及相关的控制、规划等示例开发包。开发及测试使用的环境为 Ubuntu 16.04 + ROS Kinetic/Melodic。
@@ -57,6 +71,16 @@
    * 添加关节空间和笛卡尔空间的速度控制模式。(需要**控制器固件版本 >= 1.6.8**)
    * 支持[Moveit添加其它模型到末端](#551-moveit加载其它自定义模型到机械臂末端)  
    * 添加带超时版本的速度模式控制。(需要**控制器固件版本 >= 1.8.0**)  
+   * 添加xArm Vision和RealSense D435i相关demo，将之前的"xarm_device"内容转移至 xarm_vision/camera_demo。
+   * xarm_controler (xarm_hw)不再通过service和topic的方式来使用SDK，而是直接调用SDK的接口
+   * 支持Lite6模型
+   * [Beta]新增连个力矩相关的主题（暂时不支持第三方力矩传感器）: /xarm/uf_ftsensor_raw_states(原始数据)和/xarm/uf_ftsensor_ext_states(经过滤波后的数据)
+   * (2022-09-07) 新增service(__set_tgpio_modbus_timeout__/__getset_tgpio_modbus_data__)，根据参数选择是否透传Modbus数据
+   * (2022-09-07) 更新子模块xarm-sdk到1.11.0版本
+   * (2022-11-16) 增加力矩相关services: /xarm/ft_sensor_enable, /xarm/ft_sensor_app_set, /xarm/ft_sensor_set_zero, /xarm/ft_sensor_cali_load, /xarm/get_ft_sensor_error
+   * (2023-02-10) 新增xarm_moveit_servo支持xbox手柄/SpaceMouse/键盘控制
+   * (2023-02-18) 给service(/xarm/ft_sensor_cali_load)增加保存操作, 增加力矩相关service(/xarm/ft_sensor_iden_load)
+   * (2023-02-27) 增加控制Lite6 Gripper的service(/ufactory/open_lite6_gripper, /ufactory/close_lite6_gripper, /ufactory/stop_lite6_gripper)(注： 一旦stop之后，close将无效，必须先open才能启用控制)
 
 # 3. 准备工作
 
@@ -183,9 +207,10 @@ $ roslaunch xarm_description xarm7_rviz_display.launch
 #### Moveit!图形控制界面 + xArm 真实机械臂:
    首先, 检查并确认xArm电源和控制器已上电开启, 然后运行:  
    ```bash
-   $ roslaunch xarm7_moveit_config realMove_exec.launch robot_ip:=<控制盒的局域网IP地址>
+   $ roslaunch xarm7_moveit_config realMove_exec.launch robot_ip:=<控制盒的局域网IP地址> [velocity_control:=false] [report_type:=normal]
    ```
-   检查terminal中的输出看看有无错误信息。如果启动无误，您可以将RViz中通过Moveit规划好的轨迹通过'Execute'按钮下发给机械臂执行。***但一定确保它不会与周围环境发生碰撞！***  
+   检查terminal中的输出看看有无错误信息。如果启动无误，您可以将RViz中通过Moveit规划好的轨迹通过'Execute'按钮下发给机械臂执行。***但一定确保它不会与周围环境发生碰撞！***   
+   `velocity_control`为可选参数, 如果设置为`true`, velocity controller 和 velocity interface 就会取代默认的位置控制接口； `report_type`同样为可选参数, 具体请参考[这里](#report_type-启动参数).  
 
 #### Moveit!图形控制界面 + 安装了UFACTORY机械爪的xArm真实机械臂:  
    首先, 检查并确认xArm电源和控制器已上电开启, 然后运行:  
@@ -242,17 +267,18 @@ $ roslaunch xarm_description xarm7_rviz_display.launch
 'robot_dof'参数指的是xArm的关节数目 (默认值为7)。xarm_planner已经可以支持装载UF机械爪或真空吸头的xArm模型，请根据需要指定"**add_gripper**"或"**add_vacuum_gripper**"为true。   
 
 ## 5.7 xarm_api/xarm_msgs:
-&ensp;&ensp;这两个package提供给用户封装了xArm SDK功能的ros服务, xarm自带的控制盒会进行轨迹规划。当前支持八种运动命令（ros service同名）, 请首先务必确保手臂工作在正确的模式下, 参考[模式切换](#6-模式切换):  
+&ensp;&ensp;这两个package提供给用户封装了xArm SDK功能的ros服务, xarm自带的控制盒会进行轨迹规划。当前支持12种运动命令（ros service同名）, 请首先务必确保手臂工作在正确的模式下, 参考[模式切换](#6-模式切换):  
 #### 手臂模式0:
 * `move_joint`: 关节空间的点到点运动, 用户仅需要给定目标关节位置，运动过程最大关节速度/加速度即可， 对应SDK里的set_servo_angle()函数。 
 * `move_line`: 笛卡尔空间的直线轨迹运动，用户需要给定工具中心点（TCP）目标位置以及笛卡尔速度、加速度，对应SDK里的set_position()函数【不指定交融半径】。  
-* `move_lineb`: 圆弧交融的直线运动，给定一系列中间点以及目标位置。 每两个中间点间为直线轨迹，但在中间点处做一个圆弧过渡（需给定半径）来保证速度连续，对应SDK里的set_position()函数【指定了交融半径】。代码示例请参考[move_test.cpp](./xarm_api/test/move_test.cpp)  
+* `move_lineb`: 笛卡尔空间的直线轨迹运动, 同时与下一条运动指令做交融连续。可以准备一系列已知的中间点以及目标位置。 每两个中间点间为直线轨迹，但在中间点处做一个圆弧过渡（需给定半径）来保证速度连续，对应SDK里的set_position()函数【指定了交融半径和wait=false】。代码示例请参考[move_test.cpp](./xarm_api/test/move_test.cpp) 和 [blended_motion_test.py](./xarm_api/scripts/blended_motion_test.py)，为了提前进行交融运算，`/xarm/wait_for_finish` 参数必须设置为`false`。    
+* `move_jointb`: 关节空间的点到点运动, 同时与下一条运动指令做交融连续。可以与"move_lineb"混用实现关节和线性运动的交融，只要中间点位已知且交融半径正确设置, 速度将在执行过程中保持连续而不停顿。对应SDK里的set_servo_angle()函数【指定了交融半径和wait=false】。代码示例请参考[blended_motion_test.py](./xarm_api/scripts/blended_motion_test.py)，为了提前进行交融运算，`/xarm/wait_for_finish` 参数必须设置为`false`。    
 * `move_line_tool`: 基于工具坐标系（而不是基坐标系）的直线运动。对应SDK里的set_tool_position()函数。  
 另外需要 ***注意*** 的是，使用以上4种service之前，需要通过service依次将机械臂模式(mode)设置为0，然后状态(state)设置为0。这些运动指令的意义和详情可以参考产品使用指南。除此之外还提供了其他xarm编程API支持的service调用, 对于相关ros service的定义在 [xarm_msgs目录](./xarm_msgs/)中。  
 * `move_line_aa`: 笛卡尔空间的直线轨迹运动，姿态使用**轴-角** 而不是roll-pitch-yaw欧拉角，在使用此命令之前请仔细查阅xArm用户手册关于轴-角的解释。  
 
 #### 手臂模式1:
-* `move_servo_cart/move_servoj`: （固定）高频率的笛卡尔或关节轨迹指令，分别对应SDK里的set_servo_cartesian()和set_servo_angle_j()，需要机械臂工作在**模式1**，可以间接实现速度控制。在使用这两个服务功能之前，务必做好**风险评估**并且仔细阅读第[7.2-7.3节](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)的使用方法。  
+* `move_servo_cart/move_servoj`: （固定）高频率的笛卡尔或关节轨迹指令，分别对应SDK里的set_servo_cartesian()和set_servo_angle_j()，需要机械臂工作在**模式1**，可以间接实现速度控制。在使用这两个服务功能之前，务必做好**风险评估**并且仔细阅读[其他示例 2-3节](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)的使用方法。    
 
 #### 手臂模式4:
 * `velo_move_joint/velo_move_joint_timed`: 指定所有关节目标转速(单位: rad/s)的运动, 最大关节加速度可以通过 `set_max_acc_joint` 服务设定。（[例子](#5-关节旋转速度控制)）  
@@ -260,13 +286,20 @@ $ roslaunch xarm_description xarm7_rviz_display.launch
 #### 手臂模式5:
 * `velo_move_line/velo_move_line_timed:` 指定TCP笛卡尔线速度（mm/s）和姿态角速度（rad/s，**轴-角速度**表示）的运动, 最大关节加速度可以通过`set_max_acc_line` 服务设定。（[例子](#6-笛卡尔线速度控制)）  
 
+#### 手臂模式6: 
+* `move_joint`: 关节在线轨迹规划（需要**控制器固件版本 >= v1.10.0**），在模式6下，可以随时发送新的关节目标位置，最大速度和加速度，控制器可以在线重新规划轨迹。目标更改后关节速度加速度连续，但可能不再同步加减速，最终到达的位置可能会稍有误差。**本功能主要是实现关节指令的动态响应，而不像servo_joint指令需要用户自己规划轨迹并高频更新**。 `/xarm/wait_for_finish` 需要设置为 `false` 以随时打断现有目标轨迹，对应的SDK函数仍然是"set_servo_angle(wait=false)"。（[例子](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update)）  
+
+#### 手臂模式7:
+* `move_line`： 笛卡尔空间路径在线规划（需要**控制器固件版本 >= v1.11.0**），在模式7下，可以随时更新目标笛卡尔坐标，以及期望的最大速度和加速度，控制器可以及时在线重新规划路径，以线速度连续的方式过渡到新的目标位置。 **本功能主要是实现笛卡尔指令的动态响应，而不像servo_cartesian指令需要用户自己规划轨迹并高频更新**. `/xarm/wait_for_finish` 需要设置为 `false` 以随时打断现有目标轨迹，对应的SDK函数仍然是"set_position(wait=false)"。（[例子](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update)）  
 
 #### 使用ROS Service启动 xArm:
 
 &ensp;&ensp;首先启动xarm7 service server, 以下ip地址只是举例:  
 ```bash
-$ roslaunch xarm_bringup xarm7_server.launch robot_ip:=192.168.1.128
+$ roslaunch xarm_bringup xarm7_server.launch robot_ip:=192.168.1.128 report_type:=normal
 ```
+`report_type`为可选参数，参考[这里](#report_type-启动参数)  
+
 &ensp;&ensp;然后确保每个关节的控制已经使能, 参考[SetAxis.srv](/xarm_msgs/srv/SetAxis.srv):
 ```bash
 $ rosservice call /xarm/motion_ctrl 8 1
@@ -355,7 +388,7 @@ $ rosservice call /xarm/velo_move_line_timed [0,0,0,0.707,0,0] 0 0 0.2
 ``` 
 会命令末端TCP绕着用户/基坐标系的X轴以45度/秒速度旋转，姿态变化的最大加速度目前是一个固定值。  
 
-请注意: 速度模式下，无超时版本服务可以通过两种方式停止： 发送**全零速度**指令, 或者设置**state为4(STOP)** 然后下一次运动前再设置回0(READY)。但还是**推荐使用带超时的版本（固件更新至v1.8.0以上）**，这样在程序异常或通信中断等情况下可以保证安全。  
+请注意: 速度模式下，无超时版本服务可以通过两种方式停止： 发送**全零速度**指令, 或者设置**state为4(STOP)** 然后下一次运动前再设置回0(READY)。但还是**推荐使用带超时的版本（固件更新至v1.8.0以上）**，这样在程序异常或通信中断等情况下可以保证安全。     
 
 
 ##### 运动服务返回值:
@@ -414,7 +447,7 @@ $ rosservice call /xarm/set_controller_aout 2 3.3  (设定输出端口 AO1 为 3
 #### 获得反馈状态信息:
 &ensp;&ensp;如果通过运行'xarm7_server.launch'连接了一台xArm机械臂，用户可以通过订阅 ***"xarm/xarm_states"*** topic 获得机械臂当前的各种状态信息， 包括关节角度、工具坐标点的位置、错误、警告信息等等。具体的信息列表请参考[RobotMsg.msg](./xarm_msgs/msg/RobotMsg.msg).  
 &ensp;&ensp;另一种选择是订阅 ***"/joint_states"*** topic, 它是以[JointState.msg](http://docs.ros.org/jade/api/sensor_msgs/html/msg/JointState.html)格式发布数据的, 但是当前 ***只有 "position" 是有效数据***; "velocity" 是没有经过任何滤波的基于相邻两组位置数据进行的数值微分, "effort" 的反馈数据是基于电流的估计值，而不是直接从力矩传感器获得，因而它们只能作为参考。
-&ensp;&ensp;基于运行时性能考虑，目前以上两个topic的数据更新率固定为 ***5Hz***.  
+&ensp;&ensp;基于运行时性能考虑，目前以上两个topic的数据更新率固定为 ***5Hz***。状态反馈的频率和内容可以有其他选择，参考[report_type参数](#report_type-启动参数)。  
 
 #### 关于设定末端工具偏移量(适用于xarm_api service控制):  
 &ensp;&ensp;末端工具的偏移量可以也通过'/xarm/set_tcp_offset'服务来设定,参考下图，请注意这一坐标偏移量是基于 ***默认工具坐标系*** (坐标系B)描述的，它位于末端法兰中心，并且相对基坐标系(坐标系A)有（PI, 0, 0)的RPY旋转偏移。
@@ -505,14 +538,73 @@ $ rosservice call /xarm/config_tool_modbus 115200 20
 
 设置完成后，modbus通信可以这样通过rosservice进行 (参考 [SetToolModbus.srv](/xarm_msgs/srv/SetToolModbus.srv)):  
 ```bash
-$ rosservice call /xarm/set_tool_modbus [0x01,0x06,0x00,0x0A,0x00,0x03] 7
+$ rosservice call /xarm/set_tool_modbus [0x01,0x06,0x00,0x0A,0x00,0x03] 6
 ```
-第一个参数是要发送的通讯字节序列, 第二个参数是需要接收的回复字节数量. **这个数字应该是期望收到的数据字节数+1 (不含CRC校验字符)**. 来自末端modbus返回的数据会在最前面添加值为**0x09**的一个字节, 剩余的即为设备返回的数据。 举例来说，对于某个测试设备，上面的指令可能返回:  
+第一个参数是要发送的通讯字节序列, 第二个参数是需要接收的回复字节数量. **这个数字应该是期望收到的数据字节数 (不含CRC校验字符)**. 举例来说，对于某个测试设备，上面的指令可能返回:  
 ```bash
 ret: 0
-respond_data: [9, 1, 6, 0, 10, 0, 3]
+respond_data: [1, 6, 0, 10, 0, 3]
 ```
 其中实际收到的数据帧为: [0x01, 0x06, 0x00, 0x0A, 0x00, 0x03]，长度为6.  
+
+#### "report_type" 启动参数:
+当启动xArm真机的ROS应用时, 可以选择性的指定"report_type"参数。它决定了状态上报的内容和频率。具体请参考[开发者手册](https://www.cn.ufactory.cc/_files/ugd/896670_8c25a14281ce4b63814c1730c3fd82c4.pdf)中的**2.1.6. 自动上报数据格式**章节查看三种上报类型(`normal/rich/dev`)的内容区别, 默认使用的类型为 "normal"。  
+
+* 对于需要高频率状态反馈的用户, 在启动时可以指定`report_type:=dev`, 这样`/xarm/xarm_states`和`/xarm/joint_states`话题会以**100Hz**频率更新。  
+* 对于需要使用`/xarm/controller_gpio_states`话题实时查看控制器GPIO状态的用户, 请指定`report_type:=rich`, 可以在开发者手册中看到这个类型反馈的信息是最全的。  
+* 不同上报类型的更新频率:   
+
+|   type   |    port No.   | Frequency |  GPIO topic  | F/T sensor topic | 
+|:--------:|:-------------:|:---------:|:------------:|:----------------:|
+|   normal |     30001     |    5Hz    |     不可用    |      不可用        |
+|   rich   |     30002     |    5Hz    |      可用     |       可用        | 
+|   dev    |     30003     |    100Hz  |     不可用    |        可用        |
+
+注: **GPIO topic** => `xarm/controller_gpio_states`. **F/T sensor topic** =>  `xarm/uf_ftsensor_ext_states` and `xarm/uf_ftsensor_raw_states`。
+
+## 5.8 xarm_moveit_servo:
+&ensp;&ensp;此模块用于通过特定外部输入设备来控制机械臂
+   - #### 5.8.1 通过 __XBOX360__ 手柄控制
+      - 左摇杆控制TCP的X和Y
+      - 右摇杆控制TCP的ROLL和PITCH
+      - [前面]左右两个触发器控制TCP的Z
+      - [前面]左右两个缓冲器控制TCP的YAW
+      - 十字键控制关节1和关节2的转动
+      - 按键X和按键B控制最后一个关节的转动
+      - 按键Y和按键A控制倒数第二个关节的转动
+
+      ```bash
+      # 控制真实xArm6机械臂
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=1
+      # XBOX Wired -> joystick_type=1
+      # XBOX Wireless -> joystick_type=2
+
+      # 或者控制真实Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=1 robot_type:=lite
+      ```
+
+   - #### 5.8.2 通过六维鼠标 __3Dconnexion SpaceMouse Wireless__ 来控制
+      - 六维鼠标的六个维度对应控制TCP的X/Y/Z/ROLL/PITCH/YAW
+      - 左边按键按下时单独控制TCP的XYZ
+      - 右边按键按下时单独控制TCP的ROLL/PITCH/YAW
+
+      ```bash
+      # 控制真实xArm6机械臂
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=3
+
+      # 或者控制真实Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=3 robot_type:=lite
+      ```
+
+   - #### 5.8.3 通过 __键盘输入__ 控制
+      ```bash
+      # 控制真实xArm6机械臂
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=99
+
+      # 或者控制真实Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=99 robot_type:=lite
+      ```
+
 
 # 6. 模式切换
 &ensp;&ensp;xArm 在不同的控制方式下可能会工作在不同的模式中，当前的模式可以通过topic "xarm/xarm_states" 的内容查看。在某些情况下，需要用户主动切换模式以达到继续正常工作的目的。
@@ -524,9 +616,11 @@ respond_data: [9, 1, 6, 0, 10, 0, 3]
 &ensp;&ensp; ***Mode 2*** : 自由拖动(零重力)模式；  
 &ensp;&ensp; ***Mode 3*** : 保留；  
 &ensp;&ensp; ***Mode 4*** : 关节速度控制模式；  
-&ensp;&ensp; ***Mode 5*** : 笛卡尔速度控制模式。  
+&ensp;&ensp; ***Mode 5*** : 笛卡尔速度控制模式；  
+&ensp;&ensp; ***Mode 6*** : 关节在线规划模式；（控制器固件版本>=v1.10.0） 
+&ensp;&ensp; ***Mode 7*** : 笛卡尔路径在线规划模式。(控制器固件版本>= v1.11.0)  
 
-&ensp;&ensp;***Mode 0*** 是系统初始化的默认模式，当机械臂发生错误(碰撞、过载、超速等等),系统也会自动切换到模式0。并且对于[xarm_api](./xarm_api/)包和[SDK](https://github.com/xArm-Developer/xArm-Python-SDK)中提供的运动指令都要求xArm工作在模式0来执行。***Mode 1*** 是为了方便像 Moveit! 一样的第三方规划器绕过xArm控制器的规划去执行轨迹。 ***Mode 2*** 可以打开自由拖动模式, 机械臂会进入零重力状态方便拖动示教, 但需注意在进入模式2之前确保机械臂安装方式和负载均已正确设置。 ***Mode 4*** 可以直接给定关节期望速度来控制手臂。***Mode 5*** 可以给定末端笛卡尔线速度来控制手臂运动。
+&ensp;&ensp;***Mode 0*** 是系统初始化的默认模式，当机械臂发生错误(碰撞、过载、超速等等),系统也会自动切换到模式0。并且对于[xarm_api](./xarm_api/)包和[SDK](https://github.com/xArm-Developer/xArm-Python-SDK)中提供的运动指令都要求xArm工作在模式0来执行。***Mode 1*** 是为了方便像 Moveit! 一样的第三方规划器绕过xArm控制器的规划去执行轨迹。 ***Mode 2*** 可以打开自由拖动模式, 机械臂会进入零重力状态方便拖动示教, 但需注意在进入模式2之前确保机械臂安装方式和负载均已正确设置。 ***Mode 4*** 可以直接给定关节期望速度来控制手臂。***Mode 5*** 可以给定末端笛卡尔线速度来控制手臂运动。***Mode 6 和 Mode 7***对应关节和笛卡尔在线规划模式，可以随时动态更新指令，控制器自动规划并执行到新的目标。
 
 ### 6.2 切换模式的正确方法:  
 &ensp;&ensp;如果在执行Moveit!规划的轨迹期间发生碰撞等错误, 为了安全考虑，当前模式将被自动从1切换到0, 同时robot state将变为 4 (错误状态)。这时即使碰撞已经解除，机械臂在重新回到模式1之前也无法执行任何Moveit!或者servoj指令。请依次按照下列指示切换模式:  
@@ -543,6 +637,129 @@ $ rosservice call /xarm/set_mode 2
 $ rosservice call /xarm/set_state 0
 ```
 
-# 7. 其他示例
-&ensp;&ensp;[在examples路径下](./examples)会陆续更新一些其他应用的demo例程，欢迎前去探索研究。
+# 7. xArm视觉
+提供xArm扩展视觉应用的基础示例，包括手眼标定和视觉抓取，例程主要基于[Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/)深度相机。 
 
+## 7.1 相关依赖库和ros包的安装：
+
+首先进入ros工作空间：
+```bash
+$ cd ~/catkin_ws/src/
+```
+
+### 7.1.1 安装RealSense 开发支持库和ROS软件包： 
+请依照[官方指示步骤](https://github.com/IntelRealSense/realsense-ros)正确安装。
+
+### 7.1.2 安装aruco_ros, 用于手眼标定：
+参考[官方Github](https://github.com/pal-robotics/aruco_ros):
+```bash
+$ git clone -b kinetic-devel https://github.com/pal-robotics/aruco_ros.git
+```
+### 7.1.3 安装easy_handeye, 用于手眼标定：
+参考[官方Github](https://github.com/IFL-CAMP/easy_handeye):
+```bash
+$ git clone https://github.com/IFL-CAMP/easy_handeye
+``` 
+### 7.1.4 安装vision_visp 支持包：
+参考[官方Github](https://github.com/lagadic/vision_visp):
+```bash
+$ git clone -b kinetic-devel https://github.com/lagadic/vision_visp.git
+```
+### 7.1.5 安装find_object_2d包，用于物体识别：
+参考[官方Github](https://github.com/introlab/find-object/tree/kinetic-devel):
+```bash
+$ sudo apt-get install ros-kinetic-find-object-2d
+```
+### 7.1.6 安装其他依赖包：
+```bash
+$ cd ~/catkin_ws
+```
+然后请参考[4.3节内容](#43-安装其他依赖包).
+
+### 7.1.7 编译整个工作区：
+```bash
+$ catkin_make
+```
+
+## 7.2 手眼标定示例：
+如果使用RealSense D435i相机配合固定工件安装在手臂末端，即“**眼在手上**”，确保相机与电脑通信正常且手臂正常上电后，可以参考和使用如下launch脚本进行手眼标定：
+```bash
+$ roslaunch d435i_xarm_setup d435i_xarm_auto_calib.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+标定使用的aruco二维码可以在[这里下载](https://chev.me/arucogen/)，请记住自己下载的`marker ID`和`marker size`，并在以上launch文件中修改。参考[官方](https://github.com/IFL-CAMP/easy_handeye#calibration)或其他网络教程通过图形界面进行标定，标定完成并确认保存后，默认会在 `~/.ros/easy_handeye`目录下生成`.yaml`后缀的结果文档，供后续与手臂一起进行坐标变换使用。如果固定件用的是UFACTORY提供的[camera_stand](https://www.ufactory.cc/products/xarm-camera-module-2020)，在xarm_vision/d435i_xarm_setup/config/[xarm_realsense_handeyecalibration_eye_on_hand_sample_result.yaml](./xarm_vision/d435i_xarm_setup/config/xarm_realsense_handeyecalibration_eye_on_hand_sample_result.yaml)中保存了参考的标定结果。  
+
+### 7.2.1 关于 UFACTORY Lite6 手眼标定:
+请首先阅读和了解上面7.2章节关于xarm系列的标定示例，然后使用下面列出的替换文件应用于lite6的标定：  
+Ufactory Lite6标定启动文件:
+```bash
+$ roslaunch d435i_xarm_setup d435i_lite6_auto_calib.launch robot_ip:=your_xArm_IP
+```
+标定结果文档示例: [lite6_realsense_handeyecalibration_eye_on_hand_sample_result.yaml](./xarm_vision/d435i_xarm_setup/config/lite6_realsense_handeyecalibration_eye_on_hand_sample_result.yaml)
+
+标定结果发布启动文件示例:
+[publish_handeye_tf_lite6.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf_lite6.launch)
+
+## 7.3 3D视觉抓取示例：
+本部分提供利用[***find_object_2d***](http://introlab.github.io/find-object/)进行简单的物体识别和抓取的示例程序。使用了RealSense D435i深度相机，UFACTORY camera_stand以及xArm官方机械爪。  
+
+1.使用moveit驱动手臂动作，如果规划成功会保证无碰撞和奇异点的轨迹执行, 但对网络通信稳定性要求较高：
+```bash
+$ roslaunch d435i_xarm_setup d435i_findobj2d_xarm_moveit_planner.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+如果目标物体可以正常识别，执行抓取节点:  
+```bash
+$ rosrun d435i_xarm_setup findobj2d_grasp_moveit
+```
+请注意在其中包含的[publish_handeye_tf.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf.launch)中，默认使用前面提到的参考标定结果，将识别的物体从相机坐标映射到机械臂基坐标系，可以按照需要改为其他标定结果yaml文件。节点代码可以参考d435i_xarm_setup/src/[findobj_grasp_moveit_planner.cpp](./xarm_vision/d435i_xarm_setup/src/findobj_grasp_moveit_planner.cpp).  
+
+2.或者使用xarm_api提供的ros service驱动手臂动作，网络稳定性要求不高，但部分时候执行过程中可能报错（奇异点或将要发生自碰撞等）：
+```bash
+$ roslaunch d435i_xarm_setup d435i_findobj2d_xarm_api.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+如果目标物体可以正常识别，执行抓取节点:  
+```bash
+$ roslaunch d435i_xarm_setup grasp_node_xarm_api.launch
+```
+请注意在其中包含的[publish_handeye_tf.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf.launch)中，默认使用前面提到的参考标定结果，将识别的物体从相机坐标映射到机械臂基坐标系，可以按照需要改为其他标定结果yaml文件。节点代码可以参考d435i_xarm_setup/src/[findobj_grasp_xarm_api.cpp](./xarm_vision/d435i_xarm_setup/src/findobj_grasp_moveit_xarm_api.cpp).  
+
+***实际应用之前，请先读懂对应的代码，并针对自己的场景做出必要的修改***，比如抓取准备位置，姿态，抓取深度以及移动速度等等。代码中使用的识别目标名称为“object_1”，对应/objects目录下的`1.png`，用户可以根据实际应用在find_object_2d的图形界面中添加新的目标并修改节点程序中的`source_frame`，来识别感兴趣的物体。  
+
+***Tips***: 应注意背景尽量干净而且颜色与被识别物体有区分度，如果目标物体有比较丰富的文理，识别率会更高。
+
+## 7.4 在仿真的xArm模型末端添加RealSense D435i模型：
+如果使用UFACTORY提供的camera stand固定，可以通过以下设置添加到虚拟模型（以xarm7为例）：  
+1.同时带机械爪的模型： 设置[xarm7_with_gripper.xacro](./xarm_description/urdf/xarm7_with_gripper.xacro)的`add_realsense_d435i`参数为`true`。  
+2.同时带真空吸头的模型： 设置[xarm7_with_vacuum_gripper.xacro](./xarm_description/urdf/xarm7_with_vacuum_gripper.xacro)的`add_realsense_d435i`参数为`true`。  
+3.单纯附加相机在末端： 设置[xarm7_robot.urdf.xacro](./xarm_description/urdf/xarm7_robot.urdf.xacro)中`add_realsense_d435i`的默认值为`true`。  
+
+## 7.5 颜色块抓取例子
+
+### 7.5.1 下载gazebo_grasp_plugin插件, 用于抓取仿真(melodic以上支持)
+```bash
+ # 进入ros命名空间src目录
+ $ cd ~/catkin_ws/src/
+ # 下载(针对不同ros版本请切换到对应分支)
+ $ git clone https://github.com/JenniferBuehler/gazebo-pkgs.git
+ # 编译
+ $ cd ..
+ $ catkin_make
+```
+### 7.5.2 Gazebo仿真(melodic以上支持)
+```bash
+ # 初始化gazebo场景和move_group
+ $ roslaunch xarm_gazebo xarm_camera_scene.launch robot_dof:=6
+
+ # 运行颜色块识别抓取脚本
+ $ rosrun xarm_gazebo color_recognition.py
+```
+### 7.5.3 真机+realsense_d435i
+```bash
+ # 启动move_group
+ $ roslaunch camera_demo xarm_move_group.launch robot_ip:=192.168.1.15 robot_dof:=6
+
+ # 运行颜色块识别抓取脚本(根据输出交互使用)
+ $ rosrun camera_demo color_recognition.py
+```
+
+# 8. 其他示例
+&ensp;&ensp;[在examples路径下](./examples)会陆续更新一些其他应用的demo例程，欢迎前去探索研究。

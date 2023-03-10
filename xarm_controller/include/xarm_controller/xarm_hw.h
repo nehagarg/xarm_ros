@@ -29,9 +29,11 @@
 // #include <geometry_msgs/WrenchStamped.h>
 // for mutex
 #include <mutex>
+#include <thread>
 // xarm
 #include "xarm/core/instruction/uxbus_cmd_config.h"
-#include "xarm_api/xarm_ros_client.h"
+// #include "xarm_api/xarm_ros_client.h"
+#include "xarm_api/xarm_driver.h"
 
 
 namespace xarm_control
@@ -59,29 +61,53 @@ namespace xarm_control
 		void get_status(int state_mode_err[3]);
 		/* check whether the controller needs to be reset due to error or mode change */
 		bool need_reset();
+		bool wait_fbk_start(ros::Duration timeout);
 	
 	protected:
 		enum ControlMethod {POSITION, VELOCITY, EFFORT};
 
 	private:
-		int curr_state;
-		int curr_mode;
-		int curr_err;
-		int service_fail_ret;
+		int curr_state_;
+		int curr_mode_;
+		int curr_err_;
+		int read_code_;
+		int write_code_;
 
 		unsigned int dof_;
 		std::vector<std::string> jnt_names_;
-		std::vector<double> position_cmd_;
-		std::vector<float> position_cmd_float_;
-		std::vector<double> velocity_cmd_;
-		std::vector<float> velocity_cmd_float_;
-		std::vector<double> effort_cmd_;
 
-		std::vector<float> prev_cmds_float_;
+		// std::vector<float> prev_cmds_float_;
+        // std::vector<float> cmds_float_;
+		float prev_cmds_float_[7];
+		float cmds_float_[7];
+        std::vector<double> position_cmds_;
+        std::vector<double> velocity_cmds_;
+        std::vector<double> effort_cmds_;
+        std::vector<double> position_states_;
+        std::vector<double> velocity_states_;
+        std::vector<double> effort_states_;
 
-		std::vector<double> position_fdb_;
-		std::vector<double> velocity_fdb_;
-		std::vector<double> effort_fdb_;
+		bool initialized_;
+		bool read_ready_;
+
+		unsigned long long read_cnts_;
+		unsigned long long read_failed_cnts_;
+		double read_max_time_;
+		double read_total_time_;
+
+		float prev_read_position_[7];
+		float curr_read_position_[7];
+		float curr_read_velocity_[7];
+		float curr_read_effort_[7];
+
+		ros::Duration read_duration_;
+		ros::Duration write_duration_;
+
+		ros::NodeHandle root_nh_;
+		ros::NodeHandle hw_nh_;
+		
+		bool enforce_limits_;
+		std::string locked_ip_key_;
 
 		// double force_[3];
 		// double torque_[3];
@@ -89,17 +115,16 @@ namespace xarm_control
 		bool initial_write_;		
 		std::mutex mutex_;
 		std::string hw_ns_;
+		bool pos_fdb_called_;
+		bool stat_fdb_called_;
 		// std::string force_torque_sensor_name_;
 		// std::string force_torque_sensor_frame_id_;
 		
 		ros::Time last_joint_state_stamp_;
 		// ros::Time last_ftsensor_stamp_;
-
-		ros::Time cur_time_;
-		ros::Time prev_time_;
-		ros::Duration elapsed_;
 		
-		xarm_api::XArmROSClient xarm;
+		// xarm_api::XArmROSClient xarm;
+		xarm_api::XArmDriver xarm_driver_;
 
 		urdf::ModelInterfaceSharedPtr model_ptr_;
 		ControlMethod ctrl_method_;
@@ -128,7 +153,10 @@ namespace xarm_control
 		void _register_joint_limits(ros::NodeHandle &root_nh, std::string joint_name, const ControlMethod ctrl_method);
 		void _reset_limits(void);
 		void _enforce_limits(const ros::Duration& period);
-		bool _check_cmds_is_change(std::vector<float> prev, std::vector<float> cur, double threshold = 0.0001);
+		bool _check_cmds_is_change(float *prev, float *cur, double threshold = 0.0001);
+		bool _xarm_is_ready_read(void);
+        bool _xarm_is_ready_write(void);
+		bool _firmware_version_is_ge(int major, int minor, int revision);
 	};
 
 }

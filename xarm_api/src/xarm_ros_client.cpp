@@ -23,6 +23,8 @@ void XArmROSClient::init(ros::NodeHandle& nh)
     ros::service::waitForService(client_ns+"set_state");
     ros::service::waitForService(client_ns+"set_mode");
     ros::service::waitForService(client_ns+"move_servoj");
+    ros::service::waitForService(client_ns+"get_servo_angle");
+    // ros::service::waitForService(client_ns+"controller_gpio_states"); // last one in driver
 
 	motion_ctrl_client_ = nh_.serviceClient<xarm_msgs::SetAxis>("motion_ctrl");
 	set_mode_client_ = nh_.serviceClient<xarm_msgs::SetInt16>("set_mode");
@@ -48,7 +50,7 @@ void XArmROSClient::init(ros::NodeHandle& nh)
     send_modbus_client_ = nh_.serviceClient<xarm_msgs::SetToolModbus>("set_tool_modbus");
 
     // velocity control
-    velo_move_joint_client_ = nh_.serviceClient<xarm_msgs::MoveVelocity>("velo_move_joint_timed");
+    velo_move_joint_client_ = nh_.serviceClient<xarm_msgs::MoveVelocity>("velo_move_joint_timed",true);
     velo_move_line_client_ = nh_.serviceClient<xarm_msgs::MoveVelocity>("velo_move_line_timed");
 
     traj_record_client_ = nh_.serviceClient<xarm_msgs::SetInt16>("set_recording");
@@ -66,10 +68,13 @@ void XArmROSClient::init(ros::NodeHandle& nh)
     set_joint_jerk_client_ = nh_.serviceClient<xarm_msgs::SetFloat32>("set_joint_jerk");
     set_tcp_maxacc_client_ = nh_.serviceClient<xarm_msgs::SetFloat32>("set_tcp_maxacc");
     set_joint_maxacc_client_ = nh_.serviceClient<xarm_msgs::SetFloat32>("set_joint_maxacc");
+    get_servo_angle_client_ = nh_.serviceClient<xarm_msgs::GetFloat32List>("get_servo_angle",true);
+    get_position_rpy_client_ = nh_.serviceClient<xarm_msgs::GetFloat32List>("get_position_rpy");
+    get_position_aa_client_ = nh_.serviceClient<xarm_msgs::GetFloat32List>("get_position_axis_angle");
 }
 
 template<typename ServiceSrv>
-int XArmROSClient::_call_service(ros::ServiceClient client, ServiceSrv srv)
+int XArmROSClient::_call_service(ros::ServiceClient &client, ServiceSrv &srv)
 {
     if (client.isPersistent() && !client.isValid()) return SERVICE_IS_PERSISTENT_BUT_INVALID;
     if(client.call(srv))
@@ -366,6 +371,33 @@ int XArmROSClient::setJointMaxAcc(float maxacc)
 {
     set_float32_srv_.request.data = maxacc;
     return _call_service(set_joint_maxacc_client_, set_float32_srv_);
+}
+
+int XArmROSClient::getServoAngle(std::vector<float>& angles)
+{
+    int ret = _call_service(get_servo_angle_client_, get_float32_list_srv_);
+    angles.resize(7);
+    angles.swap(get_float32_list_srv_.response.datas);
+    get_float32_list_srv_.response.datas.clear();
+    return ret;
+}
+
+int XArmROSClient::getPositionRPY(std::vector<float>& pos)
+{
+    int ret = _call_service(get_position_rpy_client_, get_float32_list_srv_);
+    pos.resize(6);
+    pos.swap(get_float32_list_srv_.response.datas);
+    get_float32_list_srv_.response.datas.clear();
+    return ret;
+}
+
+int XArmROSClient::getPositionAxisAngle(std::vector<float>& pos)
+{
+    int ret = _call_service(get_position_aa_client_, get_float32_list_srv_);
+    pos.resize(6);
+    pos.swap(get_float32_list_srv_.response.datas);
+    get_float32_list_srv_.response.datas.clear();
+    return ret;
 }
 
 }// namespace xarm_api

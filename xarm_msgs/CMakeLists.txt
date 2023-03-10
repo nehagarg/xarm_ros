@@ -81,6 +81,13 @@ find_package(catkin REQUIRED COMPONENTS
    SetMultipleInts.srv
    SetString.srv
    PlayTraj.srv
+   GetFloat32List.srv
+   GetInt32.srv
+   SetModbusTimeout.srv
+   GetSetModbusData.srv
+   Call.srv
+   FtCaliLoad.srv
+   FtIdenLoad.srv
  )
 
 ## Generate actions in the 'action' folder

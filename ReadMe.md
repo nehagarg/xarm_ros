@@ -1,4 +1,11 @@
+For simplified Chinese version: [简体中文版](./ReadMe_cn.md)    
+For **UFACTORY Lite 6** users, make sure you have followed the instructions before chapter 4.7 on this page, then switch to [ReadMe for Lite6](./ReadMe_others.md).  
+For **kinetic** users, please use the [kinetic branch](https://github.com/xArm-Developer/xarm_ros/tree/kinetic).
+
 ## Important Notice:
+&ensp;&ensp;Topic "**xarm_cgpio_states**" has been renamed to "**controller_gpio_states**".  
+
+&ensp;&ensp;After using xArm C++ SDK as sub-module, the use of **/xarm/set_tool_modbus** service has been modified, compared with old version, the redundant '***0x09***' byte in response data has been ***removed***！  
 &ensp;&ensp;Due to robot communication data format change, ***early users*** (xArm shipped ***before June 2019***) are encouraged to ***upgrade*** their controller firmware immediately to drive the robot normally in future updates as well as to use newly developed functions. Please contact our staff to get instructions of the upgrade process. The old version robot driver can still be available in ***'legacy'*** branch, however, it will not be updated any more.   
 
 &ensp;&ensp;You MUST follow **chapter 3** to install additional packages needed before any usage of xarm_ros packages. Otherwise, unexpected errors may occur.
@@ -20,9 +27,9 @@
     * [5.5 ***xarm7_moveit_config***](#55-xarm7_moveit_config)  
         * [5.5.1 Add Custom Tool Model For Moveit](#551-add-custom-tool-model-for-moveit)  
     * [5.6 ***xarm_planner***](#56-xarm_planner)  
-    * [5.7 ***xarm_api/xarm_msgs***](#57-xarm_apixarm_msgs)  
+    * [5.7 ***xarm_api/xarm_msgs (Online Planning Modes Added)***](#57-xarm_apixarm_msgs)  
         * [5.7.1 Starting xArm by ROS service (***priority for the following operations***)](#starting-xarm-by-ros-service)  
-        * [5.7.2 Joint space or Cartesian space command example(**Velocity Control** Added)](#joint-space-or-cartesian-space-command-example)
+        * [5.7.2 Joint space or Cartesian space command example](#joint-space-or-cartesian-space-command-example)
         * [5.7.3 Tool/Controller I/O Operations](#tool-io-operations)  
         * [5.7.4 Getting status feedback](#getting-status-feedback)  
         * [5.7.5 Setting Tool Center Point Offset](#setting-tool-center-point-offset)  
@@ -30,20 +37,29 @@
         * [5.7.7 Gripper Control](#gripper-control)
         * [5.7.8 Vacuum Gripper Control](#vacuum-gripper-control)
         * [5.7.9 Tool Modbus communication](#tool-modbus-communication)
-* [6. Mode Change](#6-mode-change)
+        * [5.7.10 'report_type' argument](#report_type-argument)
+    * [5.8 ***xarm_moveit_servo***](#58-xarm_moveit_servo)
+* [6. Mode Change(***Updated***)](#6-mode-change)
     * [6.1 Mode Explanation](#61-mode-explanation)
     * [6.2 Proper way to change modes](#62-proper-way-to-change-modes)
-* [7. Other Examples](#7-other-examples)
-    * [7.1 Multi-xArm5 (separate control)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#1-multi_xarm5-controlled-separately)
-    * [7.2 Servo_Cartesian](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)
-    * [7.3 Servo_Joint](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory)
-    * [7.4 Dual xArm6 controlled with one moveGroup node](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#4-dual-xarm6-controlled-with-one-movegroup-node)
-    * [7.5 An example of demonstrating redundancy resolution using MoveIt](https://github.com/xArm-Developer/xarm_ros/tree/master/examples/xarm7_redundancy_res)
+* [7. xArm Vision](#7-xarm-vision)
+    * [7.1 Installation of dependent packages](#71-installation-of-dependent-packages)
+    * [7.2 Hand-eye Calibration Demo](#72-hand-eye-calibration-demo)
+    * [7.3 Vision Guided Grasping Demo](#73-vision-guided-grasping-demo)
+    * [7.4 Adding RealSense D435i model to simulated xArm](#74-adding-realsense-d435i-model-to-simulated-xarm)
+    * [7.5 Color Cube Grasping Demo (Simulation + Real Hardware)](#75-color-cube-grasping-demo)
+* [8. Other Examples](#8-other-examples)
+    * [8.0 An example of demonstrating redundancy resolution using MoveIt](https://github.com/xArm-Developer/xarm_ros/tree/master/examples/xarm7_redundancy_res)
+    * [8.1 Multi-xArm5 (separate control)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#1-multi_xarm5-controlled-separately)
+    * [8.2 Servo_Cartesian](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)
+    * [8.3 Servo_Joint](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory)
+    * [8.4 Dual xArm6 controlled with one moveGroup node](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#4-dual-xarm6-controlled-with-one-movegroup-node)
+    * [8.5 Record and playback trajectories](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#5-run-recorded-trajectory-beta)
+    * [8.6 Online target update for dynamic following task(**NEW**)](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update)
 
 # 1. Introduction
-   &ensp;&ensp;This repository contains the 3D models of xArm series and demo packages for ROS development and simulations.Developing and testing environment: Ubuntu 16.04 + ROS Kinetic/Melodic.  
+   &ensp;&ensp;This repository contains the 3D models of xArm series and demo packages for ROS development and simulations.Developing and testing environment: Ubuntu 16.04/18.04/20.04 + ROS Kinetic/Melodic/Noetic.  
    ***Instructions below is based on xArm7, other model user can replace 'xarm7' with 'xarm6' or 'xarm5' where applicable.***
-   For simplified Chinese instructions: [简体中文版](./ReadMe_cn.md)    
 
 # 2. Update Summary
    This package is still under development and improvement, tests, bug fixes and new functions are to be updated regularly in the future. 
@@ -61,7 +77,17 @@
    * Add velocity control mode for joint and Cartesian space. (**xArm controller firmware version >= 1.6.8** required)  
    * Add support for [custom tool model for Moveit](#551-add-custom-tool-model-for-moveit)  
    * Add timed-out version of velocity control mode, for better safety consideration. (**xArm controller firmware version >= 1.8.0** required)  
-
+   * Add xArm Vision and RealSense D435i related demo. Migrate previous "xarm_device" into xarm_vision/camera_demo.
+   * xarm_controler (xarm_hw) no longer uses the SDK through service and topic, but directly calls the SDK interface.
+   * Add text interpretation for Controller Error code, returned from "get_err" service.
+   * Support UFACTORY Lite 6 model. 
+   * [Beta] Added two more torque-related topics (temporarily do not support third-party torque sensors): /xarm/uf_ftsensor_raw_states (raw data) and /xarm/uf_ftsensor_ext_states (filtered and compensated data)
+   * (2022-09-07) Add service(__set_tgpio_modbus_timeout__/__getset_tgpio_modbus_data__), choose whether to transparently transmit Modbus data according to different parameters
+   * (2022-09-07) Update submodule xarm-sdk to version 1.11.0
+   * (2022-11-16) Add torque related services: /xarm/ft_sensor_enable, /xarm/ft_sensor_app_set, /xarm/ft_sensor_set_zero, /xarm/ft_sensor_cali_load, /xarm/get_ft_sensor_error
+   * (2023-02-10) Added xarm_moveit_servo to support xbox controller/SpaceMouse/keyboard control
+   * (2022-02-18) Automatically saving in servie(/xarm/ft_sensor_cali_load) and add torque related service(/xarm/ft_sensor_iden_load)
+   * (2023-02-27) Added service to control Lite6 Gripper(/ufactory/open_lite6_gripper, /ufactory/close_lite6_gripper, /ufactory/stop_lite6_gripper)(Note: Once stop, close will be invalid, you must open first to enable control)
 
 # 3. Preparations before using this package
 
@@ -189,9 +215,11 @@ Please note: xarm_moveit_config related packages will limit all joints within `[
 #### To run Moveit! motion planner to control the real xArm:  
    First make sure the xArm and the controller box are powered on, then execute:  
    ```bash
-   $ roslaunch xarm7_moveit_config realMove_exec.launch robot_ip:=<your controller box LAN IP address>
+   $ roslaunch xarm7_moveit_config realMove_exec.launch robot_ip:=<your controller box LAN IP address> [velocity_control:=false] [report_type:=normal]
    ```
-   Examine the terminal output and see if any error occured during the launch. If not, just play with the robot in Rviz and you can execute the sucessfully planned trajectory on real arm. But be sure it will not hit any surroundings before execution!  
+   Examine the terminal output and see if any error occured during the launch. If not, just play with the robot in Rviz and you can execute the sucessfully planned trajectory on real arm. But be sure it will not hit any surroundings before execution!   
+
+   `velocity_control` is optional, if set to `true`, velocity controller and velocity interface will be used rather than position control. `report_type` is also optional, refer [here](#report_type-argument).  
 
 #### To run Moveit! motion planner to control the real xArm with xArm Gripper attached:  
    First make sure the xArm and the controller box are powered on, then execute:  
@@ -249,31 +277,40 @@ Please note: xarm_moveit_config related packages will limit all joints within `[
 Argument 'robot_dof' specifies the number of joints of your xArm (default is 7). Now xarm_planner supports model with gripper or vacuum_gripper attached. Please specify "**add_gripper**" or "**add_vacuum_gripper**" argument if needed.    
 
 ## 5.7 xarm_api/xarm_msgs:
-&ensp;&ensp;These two packages provide user with the ros service wrapper of the functions in xArm SDK. There are 8 types of motion command (service names) supported，please set correct robot mode first, refer to [mode change section](#6-mode-change):  
+&ensp;&ensp;These two packages provide user with the ros service wrapper of the functions in xArm SDK. There are 12 types of motion command (service names) supported，please set correct robot mode first, refer to [mode change section](#6-mode-change):  
 #### Robot Mode 0:
 * <font color=blue>[move_joint](#1-joint-space-motion):</font> joint space point to point command, given target joint angles, max joint velocity and acceleration. Corresponding function in SDK is "set_servo_angle()".  
 * <font color=blue>[move_line](#2-cartesian-space-motion-in-base-coordinate):</font> straight-line motion to the specified Cartesian Tool Centre Point(TCP) target. Corresponding function in SDK is "set_position()"[blending radius not specified].  
-* <font color=blue>move_lineb:</font> a list of via points followed by target Cartesian point. Each segment is straight-line with Arc blending at the via points, to make velocity continuous. Corresponding function in SDK is "set_position()"[blending radius specified]. Please refer to [move_test.cpp](./xarm_api/test/move_test.cpp) for example code.   
+* <font color=blue>move_lineb:</font> straight-line motion, and blending continuously with next motion. Normally works in the form of a list of known via points followed by target Cartesian point. Each motion segment is straight-line with Arc blending at the via points, to make velocity continuous. Corresponding function in SDK is "set_position()"[wait=false and blending radius specified]. Please refer to [move_test.cpp](./xarm_api/test/move_test.cpp) and [blended_motion_test.py](./xarm_api/scripts/blended_motion_test.py) for example code, `/xarm/wait_for_finish` parameter has to be `false` for successful blending calculation.   
+* <font color=blue>move_jointb:</font> joint space point to point motion, and blending continuously with next motion. It can be used together with "move_lineb" for joint-linear blending motions, as long as the via points are known, and blending radius is properly specified, velocity will be continuous during the execution. Corresponding function in SDK is "set_servo_angle()"[wait=false and blending radius specified]. Please refer to [blended_motion_test.py](./xarm_api/scripts/blended_motion_test.py) for example code. `/xarm/wait_for_finish` parameter has to be `false` for successful blending calculation.   
 * <font color=blue>[move_line_tool](#3-cartesian-space-motion-in-tool-coordinate):</font> straight-line motion based on the **Tool coordinate system** rather than the base system. Corresponding function in SDK is "set_tool_position()".  
 Please ***keep in mind that*** before calling the 4 motion services above, first set robot mode to be 0, then set robot state to be 0, by calling relavent services. Meaning of the commands are consistent with the descriptions in product ***user manual***, other xarm API supported functions are also available as service call. Refer to [xarm_msgs package](./xarm_msgs/) for more details and usage guidance.  
 
 * <font color=blue>[move_line_aa](#4-cartesian-space-motion-in-axis-angle-orientation):</font> straight-line motion, with orientation expressed in **Axis-angle** rather than roll-pitch-yaw angles. Please refer to xArm user manual for detailed explanation of axis-angle before using this command.   
 
 #### Robot Mode 1:
-* <font color=blue>[move_servo_cart](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)/[move_servoj](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory):</font> streamed high-frequency trajectory command execution in Cartesian space or joint space. Corresponding functions in SDK are set_servo_cartesian() and set_servo_angle_j(). An alternative way to implement <font color=red>velocity control</font>. Special **RISK ASSESMENT** is required before using them. Please read the guidance carefully at [chapter 7.2-7.3](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory).  
+* <font color=blue>[move_servo_cart](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory)/[move_servoj](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#3-servo_joint-streamed-joint-space-trajectory):</font> streamed high-frequency trajectory command execution in Cartesian space or joint space. Corresponding functions in SDK are set_servo_cartesian() and set_servo_angle_j(). An alternative way to implement <font color=red>velocity control</font>. Special **RISK ASSESMENT** is required before using them. Please read the guidance carefully at [examples chapter 2-3](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#2-servo_cartesian-streamed-cartesian-trajectory).   
 
 #### Robot Mode 4:
 * <font color=blue>[velo_move_joint/velo_move_joint_timed](#5-joint-velocity-control):</font> Joint motion with specified velocity for each joint (unit: rad/s), with maximum joint acceleration configurable by `set_max_acc_joint` service.  
 
 #### Robot Mode 5:
-* <font color=blue>[velo_move_line/velo_move_line_timed](#6-cartesian-velocity-control):</font> Linear motion of TCP with specified velocity in mm/s (position) and rad/s (orientation in **axis-angular_velocity**), with maximum linear acceleration configurable by `set_max_acc_line` service. 
+* <font color=blue>[velo_move_line/velo_move_line_timed](#6-cartesian-velocity-control):</font> Linear motion of TCP with specified velocity in mm/s (position) and rad/s (orientation in **axis-angular_velocity**), with maximum linear acceleration configurable by `set_max_acc_line` service.  
+
+#### Robot Mode 6: (Firmware >= v1.10.0)
+* <font color=blue>[move_joint](#1-joint-space-motion):</font> Online joint space replanning to the new joint angles, with new max joint velocity and acceleration. Joint velocities and accelerations are continuous during transition, however the velocity profiles may not be synchronous and the final reached positions may have small errors. **This function is mainly for dynamic response without self trajectory planning requirement like servo joint commands**. `/xarm/wait_for_finish` parameter has to be `false` for successful transition. Corresponding function in SDK is "set_servo_angle(wait=false)" under mode 6. [Instructions](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update) 
+
+#### Robot Mode 7: (Firmware >= v1.11.0)
+* <font color=blue>[move_line](#2-cartesian-space-motion-in-Base-coordinate):</font> Online Cartesian space replanning to the new target coordinate, with new max linear velocity and acceleration. Velocities and accelerations are continuous during transition, **This function is mainly for dynamic response without self trajectory planning requirement like servo cartesian commands**. `/xarm/wait_for_finish` parameter has to be `false` for successful transition. Corresponding function in SDK is "set_position(wait=false)" under mode 7. [Instructions](https://github.com/xArm-Developer/xarm_ros/tree/master/examples#6-online-target-update)   
 
 #### Starting xArm by ROS service:
 
 &ensp;&ensp;First startup the service server for xarm7, ip address is just an example:  
 ```bash
-$ roslaunch xarm_bringup xarm7_server.launch robot_ip:=192.168.1.128
+$ roslaunch xarm_bringup xarm7_server.launch robot_ip:=192.168.1.128 report_type:=normal
 ```
+The argument `report_type` is explained [here](#report_type-argument).  
+
 &ensp;&ensp;Then make sure all the servo motors are enabled, refer to [SetAxis.srv](/xarm_msgs/srv/SetAxis.srv):
 ```bash
 $ rosservice call /xarm/motion_ctrl 8 1
@@ -423,7 +460,7 @@ $ rosservice call /xarm/set_controller_aout 2 3.3  (Setting port AO1 to be 3.3)
 #### Getting status feedback:
 &ensp;&ensp;Having connected with a real xArm robot by running 'xarm7_server.launch', user can subscribe to the topic ***"xarm/xarm_states"*** for feedback information about current robot states, including joint angles, TCP position, error/warning code, etc. Refer to [RobotMsg.msg](./xarm_msgs/msg/RobotMsg.msg) for content details.  
 &ensp;&ensp;Another option is subscribing to ***"/joint_states"*** topic, which is reporting in [JointState.msg](http://docs.ros.org/jade/api/sensor_msgs/html/msg/JointState.html), however, currently ***only "position" field is valid***; "velocity" is non-filtered numerical differentiation based on 2 adjacent position data, and "effort" feedback are current-based estimated values, not from direct torque sensor, so they are just for reference.
-&ensp;&ensp;In consideration of performance, current update rate of above two topics are set at ***5Hz***.  
+&ensp;&ensp;In consideration of performance, default update rate of above two topics are set at ***5Hz***. The report content and frequency have other options, refer to [report_type argument](#report_type-argument)  
 
 #### Setting Tool Center Point Offset(only effective for xarm_api ROS service control):
 &ensp;&ensp;The tool tip point offset values can be set by calling service "/xarm/set_tcp_offset". Refer to the figure below, please note this offset coordinate is expressed with respect to ***default tool frame*** (Frame B), which is located at flange center, with roll, pitch, yaw rotations of (PI, 0, 0) from base frame (Frame A).   
@@ -518,15 +555,72 @@ The above command will configure the tool modbus baudrate to be 115200 bps and t
 
 Then the communication can be conducted like (refer to [SetToolModbus.srv](/xarm_msgs/srv/SetToolModbus.srv)):  
 ```bash
-$ rosservice call /xarm/set_tool_modbus [0x01,0x06,0x00,0x0A,0x00,0x03] 7
+$ rosservice call /xarm/set_tool_modbus [0x01,0x06,0x00,0x0A,0x00,0x03] 6
 ```
-First argument would be the uint8(unsigned char) data array to be sent to the modbus tool device, and second is the number of characters to be received as a response from the device. **This number should be the expected data byte length +1 (without CRC bytes)**. A byte with value of **0x09** would always be attached to the head if received from tool modbus, and the rest bytes are response data from the device. For example, with some testing device the above instruction would reply:  
+First argument would be the uint8(unsigned char) data array to be sent to the modbus tool device, and second is the number of characters to be received as a response from the device. **This number should be the expected data byte length (without CRC bytes)**. For example, with some testing device the above instruction would reply:  
 ```bash
 ret: 0
-respond_data: [9, 1, 6, 0, 10, 0, 3]
+respond_data: [1, 6, 0, 10, 0, 3]
 ```
 and actual feedback data frame is: [0x01, 0x06, 0x00, 0x0A, 0x00, 0x03], with the length of 6 bytes.   
 
+#### "report_type" argument:
+When launching real xArm ROS applications, the argument "report_type" can be specified. It decides the state feedback rate and content. Refer to the [developer manual](https://www.ufactory.cc/_files/ugd/896670_1f106918b523404284c6916de025cf28.pdf) at chapter **2.1.6 Automatic Reporting Format** for the report contents of the three available report type (`normal/rich/dev`), default type using is "normal".  
+
+* For users who demand high-frequency feedback, `report_type:=dev` can be specified, then the topics `/xarm/xarm_states` and `/xarm/joint_states` will be published at **100Hz**.  
+* For users who want the gpio states being updated at `/xarm/controller_gpio_states` topic, please use `report_type:=rich`, since this reports the fullest information from the controller. As can be seen in developer manual.  
+* The report rate of the three types: 
+
+|   type   |    port No.   | Frequency |  GPIO topic   | F/T sensor topic | 
+|:--------:|:-------------:|:---------:|:-------------:|:----------------:|
+|   normal |     30001     |    5Hz    | Not Available |   Not Available  |
+|   rich   |     30002     |    5Hz    |   Available   |     Available    | 
+|   dev    |     30003     |    100Hz  | Not Available |     Available    |
+
+Note: **GPIO topic** => `xarm/controller_gpio_states`. **F/T sensor topic** =>  `xarm/uf_ftsensor_ext_states` and `xarm/uf_ftsensor_raw_states`.
+
+## 5.8 xarm_moveit_servo:
+&ensp;&ensp;This package serves as a demo for jogging xArm with devices such as joystick.
+   - #### 5.8.1 Controlling with XBOX360 joystick
+      - left stick for X and Y direction.  
+      - right stick for ROLL and PITCH adjustment.  
+      - left and right trigger (LT/RT) for Z direction.  
+      - left and right bumper (LB/RB) for YAW adjustment.  
+      - D-PAD for controlling joint1 and joint2.  
+      - buttons X and B for controlling last joint.  
+      - buttons Y and A for controlling second last joint. 
+
+      ```bash
+      # For controlling real xArm: (use xArm 6 as example)
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=1
+      # XBOX Wired -> joystick_type=1
+      # XBOX Wireless -> joystick_type=2
+
+      # Or controlling real Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=1 robot_type:=lite
+      ```
+
+   - #### 5.8.2 Controlling with 3Dconnexion SpaceMouse Wireless
+      - 6 DOFs of the mouse are mapped for controlling X/Y/Z/ROLL/PITCH/YAW
+      - Left button clicked for just X/Y/Z adjustment
+      - Right button clicked for just ROLL/PITCH/YAW adjustment
+
+      ```bash
+      # For controlling real xArm: (use xArm 6 as example)
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=3
+
+      # Or controlling real Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=3 robot_type:=lite
+      ```
+
+   - #### 5.8.3 Controlling with PC keyboard
+      ```bash
+      # For controlling real xArm: (use xArm 6 as example)
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.206 dof:=6 joystick_type:=99
+
+      # Or controlling real Lite6
+      $ roslaunch xarm_moveit_servo xarm_moveit_servo_realmove.launch robot_ip:=192.168.1.52 dof:=6 joystick_type:=99 robot_type:=lite
+      ```
 
 # 6. Mode Change
 &ensp;&ensp;xArm may operate under different modes depending on different controling methods. Current mode can be checked in the message of topic "xarm/xarm_states". And there are circumstances that demand user to switch between operation modes. 
@@ -539,8 +633,10 @@ and actual feedback data frame is: [0x01, 0x06, 0x00, 0x0A, 0x00, 0x03], with th
 &ensp;&ensp; ***Mode 3*** : Reserved.  
 &ensp;&ensp; ***Mode 4*** : Joint velocity control mode.  
 &ensp;&ensp; ***Mode 5*** : Cartesian velocity control mode.  
+&ensp;&ensp; ***Mode 6*** : Joint space online planning mode. (Firmware >= v1.10.0)  
+&ensp;&ensp; ***Mode 7*** : Cartesian space online planning mode. (Firmware >= v1.11.0)  
 
-&ensp;&ensp;***Mode 0*** is the default when system initiates, and when error occurs(collision, overload, overspeed, etc), system will automatically switch to Mode 0. Also, all the motion plan services in [xarm_api](./xarm_api/) package or the [SDK](https://github.com/xArm-Developer/xArm-Python-SDK) motion functions demand xArm to operate in Mode 0. ***Mode 1*** is for external trajectory planner like Moveit! to bypass the integrated xArm planner to control the robot. ***Mode 2*** is to enable free-drive operation, robot will enter Gravity compensated mode, however, be sure the mounting direction and payload are properly configured before setting to mode 2. ***Mode 4*** is to control arm velocity in joint space. ***Mode 5*** is to control arm (linear) velocity in Cartesian space.
+&ensp;&ensp;***Mode 0*** is the default when system initiates, and when error occurs(collision, overload, overspeed, etc), system will automatically switch to Mode 0. Also, all the motion plan services in [xarm_api](./xarm_api/) package or the [SDK](https://github.com/xArm-Developer/xArm-Python-SDK) motion functions demand xArm to operate in Mode 0. ***Mode 1*** is for external trajectory planner like Moveit! to bypass the integrated xArm planner to control the robot. ***Mode 2*** is to enable free-drive operation, robot will enter Gravity compensated mode, however, be sure the mounting direction and payload are properly configured before setting to mode 2. ***Mode 4*** is to control arm velocity in joint space. ***Mode 5*** is to control arm (linear) velocity in Cartesian space. ***Mode 6 and 7*** are for dynamic realtime response to newly generated joint or Cartesian target respectively, with automatic speed-continuous trajectoty re-planning.
 
 ### 6.2 Proper way to change modes:  
 &ensp;&ensp;If collision or other error happens during the execution of a Moveit! planned trajectory, Mode will automatically switch from 1 to default mode 0 for safety purpose, and robot state will change to 4 (error state). The robot will not be able to execute any Moveit command again unless the mode is set back to 1. The following are the steps to switch back and enable Moveit control again:  
@@ -557,5 +653,136 @@ $ rosservice call /xarm/set_mode 2
 $ rosservice call /xarm/set_state 0
 ```
 
-# 7. Other Examples
+# 7. xArm Vision
+For simple demonstrations of vision application development with xArm, including hand-eye calibration and object detection and grasping. Examples are based on [Intel RealSense D435i](https://www.intelrealsense.com/depth-camera-d435i/) depth camera.
+
+## 7.1 Installation of dependent packages:
+
+First enter the workspace source directory:
+```bash
+$ cd ~/catkin_ws/src/
+```
+
+### 7.1.1 Install RealSense developer library and ROS package： 
+Please refer to the installation steps at [official webpage](https://github.com/IntelRealSense/realsense-ros).
+
+### 7.1.2 Install 'aruco_ros', for hand-eye calibration：
+Refer to [official Github](https://github.com/pal-robotics/aruco_ros):
+```bash
+$ git clone -b kinetic-devel https://github.com/pal-robotics/aruco_ros.git
+```
+### 7.1.3 Install 'easy_handeye', for hand-eye calibration：
+Refer to [official Github](https://github.com/IFL-CAMP/easy_handeye):
+```bash
+$ git clone https://github.com/IFL-CAMP/easy_handeye
+``` 
+### 7.1.4 Install 'vision_visp' supporting package：
+Refer to [official Github](https://github.com/lagadic/vision_visp):
+```bash
+$ git clone -b kinetic-devel https://github.com/lagadic/vision_visp.git
+```
+### 7.1.5 Install 'find_object_2d', for object detection：
+Refer to [official Github](https://github.com/introlab/find-object/tree/kinetic-devel):
+```bash
+$ sudo apt-get install ros-kinetic-find-object-2d
+```
+### 7.1.6 Install other dependencies：
+```bash
+$ cd ~/catkin_ws
+```
+Then follow chapter [4.3](#43-install-other-dependent-packages).
+
+### 7.1.7 Build the whole workspace：
+```bash
+$ catkin_make
+```
+
+## 7.2 Hand-eye Calibration Demo：
+If attaching RealSense D435i camera at tool end of xArm, with mechanical adapters, making a "**eye-on-hand**"(or eye-in-hand) configuration，the following launch file can be used and modified for hand-eye calibration: (make sure the camera communication is functional and robot is properly switched on)
+```bash
+$ roslaunch d435i_xarm_setup d435i_xarm_auto_calib.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+The `aruco Marker` used inside can be downloaded [here](https://chev.me/arucogen/), please remember the `marker ID` and `marker size` and modify them in the launch file accordingly. Refer to [official](https://github.com/IFL-CAMP/easy_handeye#calibration)or other usage instructions online and finish the calibration with the GUI.   
+
+If calculation result is confirmed and saved，it will appear by default under `~/.ros/easy_handeye` directory and can be used for transferring object coordinates to base frame. If the [camera_stand](https://www.ufactory.cc/products/xarm-camera-module-2020) provided by UFACTORY is used for fixing camera, a sample calibration result is stored at xarm_vision/d435i_xarm_setup/config/[xarm_realsense_handeyecalibration_eye_on_hand_sample_result.yaml](./xarm_vision/d435i_xarm_setup/config/xarm_realsense_handeyecalibration_eye_on_hand_sample_result.yaml) for this case.  
+
+
+### 7.2.1 Hand-eye Calibration Demo for UFACTORY Lite6:
+Please first read through the above instruction for xarm series, and use the files listed here for Lite6 calibration.  
+
+Sample calibration launch:  
+```bash
+$ roslaunch d435i_xarm_setup d435i_lite6_auto_calib.launch robot_ip:=your_xArm_IP
+```
+Sample Calibration result file: [lite6_realsense_handeyecalibration_eye_on_hand_sample_result.yaml](./xarm_vision/d435i_xarm_setup/config/lite6_realsense_handeyecalibration_eye_on_hand_sample_result.yaml)
+
+Sample calibration result TF publication:
+[publish_handeye_tf_lite6.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf_lite6.launch)
+
+
+## 7.3 Vision Guided Grasping Demo:
+[***find_object_2d***](http://introlab.github.io/find-object/) is used for this demo for simple object detection and grasping. Hardware used in this part: RealSense D435i depth camera, UFACTORY camera stand and the xArm Gripper.  
+
+1.Use moveit to drive xArm's motion，recommended for singularity and collision free execution, but will require a reliable network connection.  
+```bash
+$ roslaunch d435i_xarm_setup d435i_findobj2d_xarm_moveit_planner.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+If target object can be properly detected, to run the Grasping node:  
+```bash
+$ rosrun d435i_xarm_setup findobj2d_grasp_moveit
+```
+
+Please note it will use previously mentioned sample handeye calibration result, you can change it at [publish_handeye_tf.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf.launch). For node program source code, refer to: d435i_xarm_setup/src/[findobj_grasp_moveit_planner.cpp](./xarm_vision/d435i_xarm_setup/src/findobj_grasp_moveit_planner.cpp).  
+
+2.Alternatively, to drive xArm motion with ros service provided by 'xarm_api', in this way, real-time performance of network will not be required so strict as moveit way, but execution may fail in the middle if singularity or self-collision is about to occur. 
+```bash
+$ roslaunch d435i_xarm_setup d435i_findobj2d_xarm_api.launch robot_dof:=your_xArm_DOF robot_ip:=your_xArm_IP
+```
+If target object can be properly detected, to run the Grasping node:  
+```bash
+$ roslaunch d435i_xarm_setup grasp_node_xarm_api.launch
+```
+Please note it will use previously mentioned sample handeye calibration result, you can change it at [publish_handeye_tf.launch](./xarm_vision/d435i_xarm_setup/launch/publish_handeye_tf.launch). For node program source code, refer to: d435i_xarm_setup/src/[findobj_grasp_xarm_api.cpp](./xarm_vision/d435i_xarm_setup/src/findobj_grasp_moveit_xarm_api.cpp).  
+
+***Please read and comprehend the source code and make necessary modifications before real application test***, necessary modifications include preparation pose, grasping orientation, grasping depth, motion speed and so on. The identification target name in the code is "object_1", which corresponds to `1.png` in /objects directory, users can add their own target in "find_object_2d" GUI, then modify the `source_frame` inside the code, for costomized application.  
+
+***Tips***: make sure the background is clean and the color is distinguished from the object, detection success rate can be higher if the target object has rich texture (features).
+
+## 7.4 Adding RealSense D435i model to simulated xArm：
+For installation with camera stand provided by UFACTORY, the cam model can be attached by following modifications (use xarm7 as example):    
+1.Together with xArm Gripper model: Set `add_realsense_d435i` default value to be `true` in [xarm7_with_gripper.xacro](./xarm_description/urdf/xarm7_with_gripper.xacro).  
+2.Together with xArm Vacuum Gripper model: Set `add_realsense_d435i` default value to be `true` in [xarm7_with_vacuum_gripper.xacro](./xarm_description/urdf/xarm7_with_vacuum_gripper.xacro).  
+3.Purely the d435i: Set `add_realsense_d435i` default value to be `true` in [xarm7_robot.urdf.xacro](./xarm_description/urdf/xarm7_robot.urdf.xacro).  
+
+## 7.5 Color Cube Grasping Demo
+
+### 7.5.1 Download 'gazebo_grasp_plugin' for successful grasp simulation (ROS Melodic and later)
+```bash
+ # enter source directory of ROS workspace:
+ $ cd ~/catkin_ws/src/
+ # Download through git (mind to checkout the proper branch):
+ $ git clone https://github.com/JenniferBuehler/gazebo-pkgs.git
+ # Compile:
+ $ cd ..
+ $ catkin_make
+```
+### 7.5.2 Gazebo grasping simulation (ROS Melodic and later)
+```bash
+ # Initialize gazebo scene and move_group:
+ $ roslaunch xarm_gazebo xarm_camera_scene.launch robot_dof:=6
+
+ # In another terminal, run the color recognition and grasping script:
+ $ rosrun xarm_gazebo color_recognition.py
+```
+### 7.5.3 Real xArm and Intel realsense_d435i hardware
+```bash
+ # launch move_group:
+ $ roslaunch camera_demo xarm_move_group.launch robot_ip:=192.168.1.15 robot_dof:=6
+
+ # In another terminal, run the color recognition and grasping script (use with interaction prompt):
+ $ rosrun camera_demo color_recognition.py
+```
+
+
+# 8. Other Examples
 &ensp;&ensp;There are some other application demo examples in the [example package](./examples), which will be updated in the future, feel free to explore it.
