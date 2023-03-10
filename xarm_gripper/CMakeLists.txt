@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   xarm_api
   xarm_msgs
-  moveit_ros_planning_interface
 )
 
 include_directories(
@@ -35,8 +34,7 @@ include_directories(
 
 add_action_files(
   DIRECTORY action
-  FILES 
-  Move.action
+  FILES Move.action
 )
 
 generate_messages(
@@ -49,18 +47,21 @@ catkin_package(
 
 find_package(roslaunch)
 
-add_executable(gripper_action_server src/gripper_action_server.cpp)
+add_executable(gripper_action_server 
+   src/gripper_action_server.cpp 
+)
+
 # Make sure xarm_gripper header files are generated before building gripper_action_server
 add_dependencies(gripper_action_server xarm_msgs_generate_messages_cpp xarm_gripper_generate_messages_cpp)
+
 add_dependencies(gripper_action_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(gripper_action_server  ${catkin_LIBRARIES})
+target_link_libraries(gripper_action_server 
+   ${catkin_LIBRARIES}
+)
 
-add_executable(gripper_as_gazebo src/gripper_as_gazebo.cpp)
-add_dependencies(gripper_as_gazebo xarm_msgs_generate_messages_cpp xarm_gripper_generate_messages_cpp)
-add_dependencies(gripper_as_gazebo ${catkin_EXPORTED_TARGETS})
-target_link_libraries(gripper_as_gazebo ${catkin_LIBRARIES})
-
-add_executable(gripper_client src/gripper_client.cpp)
+add_executable(gripper_client 
+   src/gripper_client.cpp 
+)
 
 # Make sure xarm_gripper header files are generated before building gripper_client
 add_dependencies(gripper_client xarm_msgs_generate_messages_cpp xarm_gripper_generate_messages_cpp)

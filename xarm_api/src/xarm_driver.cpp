@@ -1092,7 +1092,7 @@ namespace xarm_api
             }
         }
 
-        res.ret = arm->vc_set_joint_velocity(jnt_v, req.is_sync);
+        res.ret = arm->vc_set_joint_velocity(jnt_v, req.is_sync, req.duration);
         res.message = "velocity move joint, ret = " + std::to_string(res.ret);
         return true;
     }
@@ -1115,7 +1115,7 @@ namespace xarm_api
             }
         }
 
-        res.ret = arm->vc_set_cartesian_velocity(line_v, req.is_tool_coord);
+        res.ret = arm->vc_set_cartesian_velocity(line_v, req.is_tool_coord, req.duration);
         res.message = "velocity move line, ret = " + std::to_string(res.ret);
         return true;
     }

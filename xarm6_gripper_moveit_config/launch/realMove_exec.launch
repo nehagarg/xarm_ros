@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="robot_ip" />
-  <arg name="report_type" default="dev" />	<!-- default: normal -->
+  <arg name="report_type" default="dev" />	<!-- default: normal, changed to dev for servo to work-->
   <!-- load the default move_group planner (not xarm_simple_planner) -->
   <arg name="show_rviz" default="true" />
   <!-- NO_GUI_CTRL means that Rviz configuration is just for display purpose, no (Moveit) control panel loaded -->

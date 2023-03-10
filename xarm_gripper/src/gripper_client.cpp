@@ -1,8 +1,3 @@
-/**
- * Demo gripper action client
- * Should work for both real gripper and gazebo
- */
-
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -11,7 +6,7 @@
 
 int main (int argc, char **argv)
 {
-  ros::init(argc, argv, "gripper_client_test");
+  ros::init(argc, argv, "test_gripper");
 
   // create the action client
   // true causes the client to spin its own thread
