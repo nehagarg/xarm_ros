@@ -12,7 +12,7 @@
   <include file="$(find xarm6_gripper_moveit_config)/launch/moveit_rviz_common.launch">
     <arg name="jnt_stat_source" value="[/$(arg namespace)/joint_states]" />
     <arg name="load_move_group" value="true" />
-    <arg name="pub_tf" value="false" />
+    <arg name="pub_tf" value="true" />
     <arg name="gripper_controller" value="true" />
   </include>
 
