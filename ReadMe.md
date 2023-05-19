@@ -86,8 +86,15 @@ For **kinetic** users, please use the [kinetic branch](https://github.com/xArm-D
    * (2022-09-07) Update submodule xarm-sdk to version 1.11.0
    * (2022-11-16) Add torque related services: /xarm/ft_sensor_enable, /xarm/ft_sensor_app_set, /xarm/ft_sensor_set_zero, /xarm/ft_sensor_cali_load, /xarm/get_ft_sensor_error
    * (2023-02-10) Added xarm_moveit_servo to support xbox controller/SpaceMouse/keyboard control
-   * (2022-02-18) Automatically saving in servie(/xarm/ft_sensor_cali_load) and add torque related service(/xarm/ft_sensor_iden_load)
+   * (2022-02-18) Automatically saving in service(/xarm/ft_sensor_cali_load) and add torque related service(/xarm/ft_sensor_iden_load)
    * (2023-02-27) Added service to control Lite6 Gripper(/ufactory/open_lite6_gripper, /ufactory/close_lite6_gripper, /ufactory/stop_lite6_gripper)(Note: Once stop, close will be invalid, you must open first to enable control)
+   * (2023-03-29) Added the launch parameter model1300 (default is false), and replaced the model of the end of the xarm robot arm with the 1300 series
+   * (2023-04-20) Update the URDF file, adapt to ROS1 and ROS2, and load the inertia parameters of the link from the configuration file according to the SN
+   * (2023-04-20) Added launch parameter `add_realsense_d435i` (default is false), supports loading Realsense D435i model
+   * (2023-04-20) Added the launch parameter `add_d435i_links` (default is false), which supports adding the link relationship between D435i cameras when loading the RealSense D435i model. It is only useful when `add_realsense_d435i` is true
+   * (2023-04-20) Added the launch parameter `robot_sn`, supports loading the inertia parameters of the corresponding joint link, and automatically overrides the `model1300` parameters
+   * (2023-04-20) Added launch parameters `attach_to`/`attach_xyz`/`attach_rpy` to support attaching the robot arm model to other models
+   * (2023-04-21) Added [services usage documentation](xarm_api/ReadMe.md) in xarm_api
 
 # 3. Preparations before using this package
 
@@ -140,7 +147,7 @@ Moveit tutorial: <http://docs.ros.org/kinetic/api/moveit_tutorials/html/>
    ```bash
    $ rosdep install --from-paths . --ignore-src --rosdistro kinetic -y
    ```
-   And chane 'kinetic' to the ROS distribution you use.  
+   And change 'kinetic' to the ROS distribution you use.  
 
 ## 4.4 Build the code
    ```bash
@@ -748,9 +755,9 @@ Please note it will use previously mentioned sample handeye calibration result, 
 
 ## 7.4 Adding RealSense D435i model to simulated xArm：
 For installation with camera stand provided by UFACTORY, the cam model can be attached by following modifications (use xarm7 as example):    
-1.Together with xArm Gripper model: Set `add_realsense_d435i` default value to be `true` in [xarm7_with_gripper.xacro](./xarm_description/urdf/xarm7_with_gripper.xacro).  
-2.Together with xArm Vacuum Gripper model: Set `add_realsense_d435i` default value to be `true` in [xarm7_with_vacuum_gripper.xacro](./xarm_description/urdf/xarm7_with_vacuum_gripper.xacro).  
-3.Purely the d435i: Set `add_realsense_d435i` default value to be `true` in [xarm7_robot.urdf.xacro](./xarm_description/urdf/xarm7_robot.urdf.xacro).  
+```bash
+ $ roslaunch xarm7_moveit_config demo.launch add_realsense_d435i:=true
+```
 
 ## 7.5 Color Cube Grasping Demo
 
@@ -760,6 +767,7 @@ For installation with camera stand provided by UFACTORY, the cam model can be at
  $ cd ~/catkin_ws/src/
  # Download through git (mind to checkout the proper branch):
  $ git clone https://github.com/JenniferBuehler/gazebo-pkgs.git
+ $ git clone https://github.com/JenniferBuehler/general-message-pkgs.git
  # Compile:
  $ cd ..
  $ catkin_make
@@ -775,7 +783,7 @@ For installation with camera stand provided by UFACTORY, the cam model can be at
 ### 7.5.3 Real xArm and Intel realsense_d435i hardware
 ```bash
  # launch move_group:
- $ roslaunch camera_demo xarm_move_group.launch robot_ip:=192.168.1.15 robot_dof:=6
+ $ roslaunch camera_demo xarm_move_group.launch robot_ip:=192.168.1.15 robot_dof:=6 add_realsense_d435i:=true
 
  # In another terminal, run the color recognition and grasping script (use with interaction prompt):
  $ rosrun camera_demo color_recognition.py
