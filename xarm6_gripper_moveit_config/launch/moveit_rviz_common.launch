@@ -28,6 +28,7 @@
   <arg name="gripper_controller" />
   
   <arg name="model1300" default="false" />
+  <arg name="add_ft_sensor" default="false" />
   <arg name="add_realsense_d435i" default="false" />
   <arg name="add_d435i_links" default="false" />
   <arg name="attach_to" default="world" />
@@ -39,6 +40,7 @@
   <include file="$(find xarm6_gripper_moveit_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
     <arg name="model1300" value="$(arg model1300)"/>
+    <arg name="add_ft_sensor" value="$(arg add_ft_sensor)"/>
     <arg name="add_realsense_d435i" value="$(arg add_realsense_d435i)"/>
     <arg name="add_d435i_links" value="$(arg add_d435i_links)"/>
     <arg name="attach_to" value="$(arg attach_to)"/>

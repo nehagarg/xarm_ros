@@ -1,7 +1,8 @@
 <launch>
 
   <arg name="robot_ip" />
-  <arg name="report_type" default="normal" />	
+  <!-- for report types, refer here: https://github.com/xArm-Developer/xarm_ros#report_type-argument -->
+  <arg name="report_type" default="dev" />	
   <!-- load the default move_group planner (not xarm_simple_planner) -->
   <arg name="show_rviz" default="true" />
   <!-- NO_GUI_CTRL means that Rviz configuration is just for display purpose, no (Moveit) control panel loaded -->
