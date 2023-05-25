@@ -15,14 +15,14 @@
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="file://$(find xarm_description)/meshes/ft_sensor/visual/ft_sensor.STL" scale="0.001 0.001 0.001"/>
+          <mesh filename="file://$(find xarm_description)/meshes/ft_sensor/visual/ft_sensor_scaled.STL"/>
         </geometry>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <material name="${prefix}Silver" />
       </visual>
       <collision>
         <geometry>
-          <mesh filename="file://$(find xarm_description)/meshes/ft_sensor/collision/ft_sensor.STL" scale="0.001 0.001 0.001"/>
+          <mesh filename="file://$(find xarm_description)/meshes/ft_sensor/collision/ft_sensor_scaled.STL"/>
         </geometry>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <material name="${prefix}Silver" />
