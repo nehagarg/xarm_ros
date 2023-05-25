@@ -9,6 +9,7 @@
   <arg name="attach_xyz" default="'0 0 0'" />
   <arg name="attach_rpy" default="'0 0 0'" />
   <arg name="robot_sn" default="" />
+  <arg name="show_rviz" default="true"/>
 
   <remap from="$(arg ns)/source_list" to="/source_list" />
   <include file="$(find xarm6_gripper_moveit_config)/launch/moveit_rviz_common.launch">
@@ -27,6 +28,7 @@
     <arg name="attach_xyz" value="$(arg attach_xyz)"/>
     <arg name="attach_rpy" value="$(arg attach_rpy)"/>
     <arg name="robot_sn" value="$(arg robot_sn)"/>
+    <arg name="show_rviz" value="$(arg show_rviz)"/>
   </include>
 
 </launch>
