@@ -3,8 +3,8 @@ sensors:
     image_topic: /camera/aligned_depth_to_color/image_raw
     # image_topic: /camera/depth/image_rect_raw
     queue_size: 5
-    near_clipping_plane_distance: 0.1
-    far_clipping_plane_distance: 1.0
+    near_clipping_plane_distance: 0.05
+    far_clipping_plane_distance: 0.7
     shadow_threshold: 0.2
     padding_scale: 4.0
     padding_offset: 0.05
