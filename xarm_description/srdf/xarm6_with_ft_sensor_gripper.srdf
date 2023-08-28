@@ -40,6 +40,14 @@
     <joint name="joint5" value="-1.3988"/>
     <joint name="joint6" value="0"/>
   </group_state>
+  <group_state group="xarm6" name="goal_gen">
+    <joint name="joint1" value="0"/>
+    <joint name="joint2" value="-0.5988722443580627"/>
+    <joint name="joint3" value="0.023431047797203064"/>
+    <joint name="joint4" value="0"/>
+    <joint name="joint5" value="-0.5772890448570251"/>
+    <joint name="joint6" value="0"/>
+  </group_state>
   <group name="xarm_gripper">
     <link name="xarm_gripper_base_link"/>
     <link name="left_outer_knuckle"/>
