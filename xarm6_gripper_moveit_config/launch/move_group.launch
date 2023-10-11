@@ -22,6 +22,9 @@
   <!-- whether or not to load a moveit controller for gripper -->
   <arg name="gripper_controller" />
 
+  <!-- whether or not to load octomap from depthimage -->
+  <arg name="run_octomap" default="true"/>
+
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find xarm6_gripper_moveit_config)/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
@@ -38,6 +41,7 @@
   <!-- Sensors Functionality -->
   <include ns="move_group" file="$(find xarm6_gripper_moveit_config)/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_sensor_manager" value="xarm6_with_gripper" />
+    <arg name="run_octomap" value="$(arg run_octomap)"/>
   </include>
 
   <!-- Start the actual move_group node/action server -->

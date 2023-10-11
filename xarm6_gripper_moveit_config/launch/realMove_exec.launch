@@ -26,6 +26,8 @@
   <arg name="attach_rpy" default="'0 0 0'" />
   <arg name="robot_sn" default="" />
 
+  <arg name="run_octomap" default="true"/>
+
   <param name="xarm/add_gripper" type="bool" value="true" />
   <!-- common: bring up node to enable real xArm control -->
   <include file="$(find xarm_bringup)/launch/xarm6_server.launch">
@@ -75,6 +77,7 @@
     <arg name="attach_xyz" value="$(arg attach_xyz)"/>
     <arg name="attach_rpy" value="$(arg attach_rpy)"/>
     <arg name="robot_sn" value="$(arg robot_sn)"/>
+    <arg name="run_octomap" value="$(arg run_octomap)"/>
   </include>
 
 </launch>

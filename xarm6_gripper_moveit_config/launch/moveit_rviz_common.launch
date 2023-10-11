@@ -26,7 +26,10 @@
   <arg name="show_rviz" default="true" />
   <!-- whether or not to load a moveit controller for gripper -->
   <arg name="gripper_controller" />
-  
+  <!-- whether or not to run octomap -->
+  <arg name="run_octomap" default="true"/>
+
+
   <arg name="model1300" default="false" />
   <arg name="add_ft_sensor" default="false" />
   <arg name="add_realsense_d435i" default="false" />
@@ -68,6 +71,7 @@
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="gripper_controller" value="$(arg gripper_controller)"/>
+    <arg name="run_octomap" value="$(arg run_octomap)"/>
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
